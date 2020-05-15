@@ -1,5 +1,5 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
-var sslChecker = require("ssl-checker");
+var sslChecker = require("./lib/ssl-checker");
 const config = require("./config.js");
 let ssl_checker = sslChecker.default
 
@@ -51,12 +51,24 @@ async function process() {
   let sites = await load_sheet();
 
   for (let site of sites) {
+
+    //
     let url = site[1];
     let port = site[2];
-    if (port == "") port = 443;
-    
-    let check_ret = await ssl_checker(url, { method: "GET", port: port })//.then(console.info);
-    console.log(check_ret)
+
+    //check domain
+    if (url) {
+      if (!port || port == "") port = 443;
+
+      //console.log(`checking ${url}:${port}`)
+      let site_ssl = await ssl_checker(url, { method: "GET", port: port })//.then(console.info);
+
+      //output logc
+      if (site_ssl.daysRemaining <= 7 || Number.isNaN(site_ssl.daysRemaining))
+          console.log(site_ssl)
+
+    }
+
   }
   
 }
